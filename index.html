@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#5b5bd6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mood Timeline">
+  <title>Mood Timeline</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <section id="lockScreen" class="screen center">
+      <div class="lock-card">
+        <div class="logo">◐</div>
+        <h1>Mood Timeline</h1>
+        <p id="pinHint">建立你的 4 位數 PIN</p>
+        <div id="dots" class="dots"><i></i><i></i><i></i><i></i></div>
+        <div class="keypad" id="keypad"></div>
+        <button id="clearPin" class="text-btn">清除</button>
+        <p class="privacy-note">資料只儲存在這台裝置。請記住 PIN。</p>
+      </div>
+    </section>
+
+    <section id="mainScreen" class="screen hidden">
+      <header>
+        <div>
+          <small id="todayLabel"></small>
+          <h1>現在的狀態如何？</h1>
+        </div>
+        <button id="lockBtn" class="icon-btn" aria-label="鎖定">🔒</button>
+      </header>
+
+      <nav class="tabs">
+        <button data-tab="mood" class="active">記錄</button>
+        <button data-tab="sleep">睡眠</button>
+        <button data-tab="timeline">時間軸</button>
+      </nav>
+
+      <section id="mood" class="panel">
+        <div class="card">
+          <div class="scale-label"><span>極度憂鬱</span><span>極度亢奮</span></div>
+          <input id="moodRange" type="range" min="-10" max="10" value="0" step="1">
+          <div id="moodValue" class="score">0</div>
+          <h3>目前的感受 <small>（可選 1～3 個）</small></h3>
+          <div id="feelings" class="chips"></div>
+          <h3>發生了什麼嗎？ <small>（選填）</small></h3>
+          <div id="events" class="chips"></div>
+          <textarea id="moodNote" maxlength="200" placeholder="簡單記一下…"></textarea>
+          <button id="saveMood" class="primary">儲存這次紀錄</button>
+        </div>
+      </section>
+
+      <section id="sleep" class="panel hidden">
+        <div class="card">
+          <h2>🌙 昨晚睡眠</h2>
+          <div class="time-grid">
+            <label>上床時間<input id="bedTime" type="time"></label>
+            <label>大約入睡<input id="sleepTime" type="time"></label>
+            <label>起床時間<input id="wakeTime" type="time"></label>
+          </div>
+          <div id="sleepDuration" class="sleep-total">請輸入入睡與起床時間</div>
+          <h3>睡眠品質</h3>
+          <div id="quality" class="chips single"></div>
+          <h3>半夜醒來次數</h3>
+          <div id="wakeCount" class="chips single"></div>
+          <textarea id="sleepNote" maxlength="200" placeholder="備註（選填）"></textarea>
+          <button id="saveSleep" class="primary">儲存睡眠紀錄</button>
+        </div>
+      </section>
+
+      <section id="timeline" class="panel hidden">
+        <div class="card">
+          <div class="timeline-head">
+            <div><small>今日紀錄</small><h2 id="timelineDate"></h2></div>
+            <button id="exportBtn" class="secondary">匯出備份</button>
+          </div>
+          <div id="summary" class="summary"></div>
+          <div id="timelineList" class="timeline"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
