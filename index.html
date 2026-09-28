@@ -21,7 +21,7 @@
 <h3>發生了什麼嗎？ <small>（選填）</small></h3><div id="events" class="chips"></div>
 <textarea id="moodNote" maxlength="200" placeholder="簡單記一下…"></textarea><button id="saveMood" class="primary">儲存這次紀錄</button></div></section>
 
-<section id="sleep" class="panel hidden"><div class="card"><h2>🌙 昨晚睡眠</h2>
+<section id="sleep" class="panel hidden"><div class="card"><h2>🌙 昨晚睡眠</h2><div id="sleepStatus" class="status-card"></div>
 <div class="time-grid"><label>上床<input id="bedTime" type="time"></label><label>大約入睡<input id="sleepTime" type="time"></label><label>起床<input id="wakeTime" type="time"></label></div>
 <div id="sleepDuration" class="sleep-total">請輸入入睡與起床時間</div><h3>睡眠品質</h3><div id="quality" class="chips single"></div>
 <h3>半夜醒來</h3><div id="wakeCount" class="chips single"></div><textarea id="sleepNote" maxlength="200" placeholder="備註（選填）"></textarea>
@@ -56,7 +56,7 @@
 <select id="trendRange"><option value="7">7 天</option><option value="30" selected>30 天</option><option value="90">3 個月</option></select></div>
 <p class="hint">每一天顯示最低～最高範圍，圓點為當日紀錄中位數；不把一天的波動壓成單一平均值。</p>
 <canvas id="trendChart" width="560" height="280"></canvas><div id="trendStats" class="summary"></div>
-<h3>睡眠與情緒</h3><div id="sleepCompare" class="observation"></div></div></section>
+<div id="trendEvents" class="recent-box"></div><h3>睡眠與情緒</h3><div id="sleepCompare" class="observation"></div></div></section>
 
 <section id="settings" class="panel hidden"><div class="card"><h2>設定與資料</h2>
 <div class="privacy-box"><b>🔐 本機加密已啟用</b><p>情緒與睡眠紀錄會以 AES-GCM 加密後儲存在此裝置。解鎖金鑰由你的 PIN 經 PBKDF2 衍生，不會把 PIN 本身存進紀錄。</p></div>

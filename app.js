@@ -102,7 +102,40 @@ function renderV14Extras(){
 } 
 window.deleteExercise=async id=>{if(confirm("刪除這筆運動紀錄？")){sessionData.exercises=sessionData.exercises.filter(x=>x.id!==id);await persist();renderAll()}};
 
-function renderAll(){let n=new Date();$("#todayLabel").textContent=n.toLocaleDateString("zh-TW",{year:"numeric",month:"long",day:"numeric",weekday:"short"});renderDay();renderTrends();renderDailyExtras();renderV14Extras();$("#lockDelay").value=String(prefs().lockDelay)}
+
+function renderSleepQuickStatus(){
+ const box=$("#sleepStatus"); if(!box)return;
+ const sleeps=[...(sessionData.sleeps||[])].sort((a,b)=>b.day.localeCompare(a.day));
+ if(!sleeps.length){box.innerHTML="<b>最近沒有睡眠紀錄</b><small>儲存後會在這裡快速顯示。</small>";return}
+ const s=sleeps[0], h=Math.floor(s.minutes/60), m=s.minutes%60;
+ box.innerHTML=`<b>✓ 最近一次睡眠已記錄</b><small>${s.day} · ${h} 小時 ${m} 分 · ${esc(s.quality||"未填品質")} · 夜醒 ${esc(String(s.wakes??"未填"))}</small>`;
+}
+function renderMedicationHistory(){
+ const box=$("#medChanges"); if(!box)return;
+ const rows=[];
+ (sessionData.medications||[]).forEach(m=>(m.changes||[]).forEach(c=>rows.push({...c,name:m.name})));
+ rows.sort((a,b)=>String(b.day).localeCompare(String(a.day)));
+ box.innerHTML=rows.length?`<h3>用藥變更歷史</h3>`+rows.map(c=>{
+   let detail=c.type||"變更";
+   if(c.oldDose&&c.dose) detail+=` · ${esc(c.oldDose)} → ${esc(c.dose)}`;
+   else if(c.dose) detail+=` · ${esc(c.dose)}`;
+   return `<div class="change-line"><b>${esc(c.day||"")} · ${esc(c.name||"")}</b><small>${detail}</small></div>`;
+ }).join(""):"<h3>用藥變更歷史</h3><p class='hint'>尚無用藥變更紀錄。</p>";
+}
+function renderTrendEvents(){
+ const box=$("#trendEvents"); if(!box)return;
+ const events=[];
+ (sessionData.medications||[]).forEach(m=>(m.changes||[]).forEach(c=>{
+   let d=c.type||"變更"; if(c.oldDose&&c.dose)d+=` ${c.oldDose} → ${c.dose}`; else if(c.dose)d+=` ${c.dose}`;
+   events.push({day:c.day||"",text:`💊 ${m.name}：${d}`});
+ }));
+ (sessionData.exercises||[]).forEach(x=>events.push({day:localDay(x.ts),text:`🏃 ${x.type} · ${x.minutes} 分鐘 · ${x.intensity}`}));
+ (sessionData.sleeps||[]).forEach(x=>events.push({day:x.day,text:`🌙 睡眠 ${Math.floor(x.minutes/60)} 小時 ${x.minutes%60} 分 · ${x.quality||"未填品質"}`}));
+ events.sort((a,b)=>String(b.day).localeCompare(String(a.day)));
+ box.innerHTML=`<h3>近期事件</h3>`+(events.length?events.slice(0,15).map(e=>`<div class="change-line"><b>${esc(e.day)}</b><small>${esc(e.text)}</small></div>`).join(""):"<p class='hint'>尚無睡眠、用藥或運動事件。</p>");
+}
+
+function renderAll(){let n=new Date();$("#todayLabel").textContent=n.toLocaleDateString("zh-TW",{year:"numeric",month:"long",day:"numeric",weekday:"short"});renderDay();renderTrends();renderDailyExtras();try{renderV14Extras()}catch(e){console.warn("legacy extras",e)};$("#lockDelay").value=String(prefs().lockDelay)}
 $("#viewDate").onchange=renderDay;$("#trendRange").onchange=renderTrends;$("#lockDelay").onchange=e=>savePrefs({lockDelay:+e.target.value});
 $("#exportBtn").onclick=()=>{let raw=localStorage.getItem(VAULT);if(!raw)return alert("目前沒有可備份的資料");let payload={type:"MoodTimelineEncryptedBackup",version:"1.2",exportedAt:new Date().toISOString(),vault:JSON.parse(raw)},blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`mood-timeline-encrypted-${dayKey(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)};
 function askBackupPin(){return new Promise(resolve=>{let m=$("#backupPinModal"),i=$("#backupPinInput");m.classList.remove("hidden");i.value="";i.focus();let done=v=>{m.classList.add("hidden");$("#backupPinOK").onclick=$("#backupPinCancel").onclick=null;resolve(v)};$("#backupPinCancel").onclick=()=>done(null);$("#backupPinOK").onclick=()=>{/^\d{4}$/.test(i.value)?done(i.value):alert("請輸入 4 位數 PIN")}})}
