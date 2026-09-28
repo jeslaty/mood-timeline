@@ -19,3 +19,9 @@ hr{border:0;border-top:1px solid #ececf3;margin:22px 0}
 .recent-box{margin-top:18px}.recent-item{background:#f6f7fb;border-radius:13px;padding:12px;margin:8px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}
 .recent-item small{display:block;color:#77798a;margin-top:4px}.mini-danger{border:0;background:transparent;color:#a34b55;padding:6px}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}.tabs{overflow-x:auto}}
+
+.status-card{background:#f6f7fb;border-radius:14px;padding:12px 14px;margin:10px 0 14px}
+.change-line{border-left:3px solid #d9dbe7;padding:8px 10px;margin:6px 0;background:#fafafd;border-radius:0 10px 10px 0}
+.action-row{display:flex;gap:6px;flex-wrap:wrap}
+.mini-btn{border:1px solid #dfe0e8;background:white;border-radius:9px;padding:6px 9px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;z-index:99;padding:20px}.modal.hidden{display:none}.modal-card{background:white;border-radius:18px;padding:20px;max-width:390px;width:100%}.modal-card input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ddd;border-radius:10px;margin:10px 0}

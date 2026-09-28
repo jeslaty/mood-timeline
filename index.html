@@ -30,7 +30,7 @@
 
 <section id="meds" class="panel hidden"><div class="card">
 <h2>💊 今日用藥</h2><p class="hint">先建立目前用藥；平常只要快速確認今天是否依計畫服用。藥物調整會保留歷史。</p>
-<div id="activeMeds"></div>
+<div id="activeMeds"></div><div id="medChanges" class="recent-box"></div>
 <button id="allMedsTaken" class="primary">✓ 今天都依計畫服用</button>
 <hr><h3>新增／調整用藥</h3>
 <div class="form-grid"><input id="medName" placeholder="藥物名稱"><input id="medDose" placeholder="劑量，例如 10 mg">
@@ -66,4 +66,4 @@
 <div class="button-row"><button id="exportBtn" class="secondary">匯出備份</button><label class="secondary file-btn">匯入備份<input id="importFile" type="file" accept="application/json"></label></div>
 <hr><h3>測試完成後</h3><button id="clearData" class="danger wide">清除所有情緒與睡眠資料</button>
 <p class="hint">這不會刪除 PIN。清除後無法復原，除非你已有加密備份。</p><p class="warning">⚠️ 如果忘記 PIN，且沒有可用的備份，資料無法復原。</p></div></section>
-</section></main><script src="app.js"></script></body></html>
+</section></main><script src="app.js"></script><div id="backupPinModal" class="modal hidden"><div class="modal-card"><h3>備份使用不同 PIN</h3><p class="hint">請輸入「建立這份備份時」使用的 4 位數 PIN。只用來解密這次備份，不會儲存。</p><input id="backupPinInput" inputmode="numeric" maxlength="4" type="password" placeholder="4 位數 PIN"><div class="button-row"><button id="backupPinCancel" class="secondary">取消</button><button id="backupPinOK" class="primary">解密備份</button></div></div></div></body></html>
