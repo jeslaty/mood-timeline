@@ -8,3 +8,7 @@ select{border:1px solid #dedfea;border-radius:11px;padding:9px;background:white}
 .danger{border:1px solid #e2b7bd;background:#fff5f6;color:#a43e4c;border-radius:13px;padding:12px}
 hr{border:0;border-top:1px solid #ececf3;margin:22px 0}
 @media(max-width:420px){.tabs{grid-template-columns:repeat(5,minmax(65px,1fr))}.button-row{flex-direction:column}}
+
+.privacy-box{background:#f0f7f4;border:1px solid #cfe5da;border-radius:14px;padding:14px;margin:12px 0 18px;line-height:1.55}
+.privacy-box p{margin:7px 0 0;font-size:13px;color:#59645f}
+.warning{background:#fff8e8;border-radius:12px;padding:11px 12px;font-size:13px;line-height:1.5;color:#795b20}

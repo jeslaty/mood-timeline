@@ -37,10 +37,11 @@
 <h3>睡眠與情緒</h3><div id="sleepCompare" class="observation"></div></div></section>
 
 <section id="settings" class="panel hidden"><div class="card"><h2>設定與資料</h2>
+<div class="privacy-box"><b>🔐 本機加密已啟用</b><p>情緒與睡眠紀錄會以 AES-GCM 加密後儲存在此裝置。解鎖金鑰由你的 PIN 經 PBKDF2 衍生，不會把 PIN 本身存進紀錄。</p></div>
 <label class="setting-row">自動鎖定<select id="lockDelay"><option value="0">立即</option><option value="1">1 分鐘</option><option value="5">5 分鐘</option></select></label>
 <button id="changePin" class="secondary wide">變更 4 位數 PIN</button><hr>
-<h3>備份</h3><p class="hint">備份檔包含你的情緒與睡眠紀錄，請保存在私人位置。</p>
+<h3>備份</h3><p class="hint">備份檔本身也是加密的。還原時需要建立備份時使用的 PIN。</p>
 <div class="button-row"><button id="exportBtn" class="secondary">匯出備份</button><label class="secondary file-btn">匯入備份<input id="importFile" type="file" accept="application/json"></label></div>
 <hr><h3>測試完成後</h3><button id="clearData" class="danger wide">清除所有情緒與睡眠資料</button>
-<p class="hint">這不會刪除 PIN。清除後無法復原，除非你已有備份。</p></div></section>
+<p class="hint">這不會刪除 PIN。清除後無法復原，除非你已有加密備份。</p><p class="warning">⚠️ 如果忘記 PIN，且沒有可用的備份，資料無法復原。</p></div></section>
 </section></main><script src="app.js"></script></body></html>
