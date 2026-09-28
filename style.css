@@ -12,3 +12,10 @@ hr{border:0;border-top:1px solid #ececf3;margin:22px 0}
 .privacy-box{background:#f0f7f4;border:1px solid #cfe5da;border-radius:14px;padding:14px;margin:12px 0 18px;line-height:1.55}
 .privacy-box p{margin:7px 0 0;font-size:13px;color:#59645f}
 .warning{background:#fff8e8;border-radius:12px;padding:11px 12px;font-size:13px;line-height:1.5;color:#795b20}
+
+.tabs{grid-template-columns:repeat(7,minmax(62px,1fr))}
+.form-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:8px;margin:10px 0}
+.form-grid input,.form-grid select,.timeline-head input{border:1px solid #dedfea;border-radius:11px;padding:10px;min-width:0}
+.recent-box{margin-top:18px}.recent-item{background:#f6f7fb;border-radius:13px;padding:12px;margin:8px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.recent-item small{display:block;color:#77798a;margin-top:4px}.mini-danger{border:0;background:transparent;color:#a34b55;padding:6px}
+@media(max-width:520px){.form-grid{grid-template-columns:1fr}.tabs{overflow-x:auto}}

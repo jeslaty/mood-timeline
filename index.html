@@ -12,7 +12,7 @@
 <section id="mainScreen" class="screen hidden"><header><div><small id="todayLabel"></small><h1>Mood Timeline</h1></div>
 <button id="lockBtn" class="icon-btn">🔒</button></header>
 <nav class="tabs"><button data-tab="mood" class="active">記錄</button><button data-tab="sleep">睡眠</button>
-<button data-tab="timeline">時間軸</button><button data-tab="trends">趨勢</button><button data-tab="settings">設定</button></nav>
+<button data-tab="meds">用藥</button><button data-tab="exercise">運動</button><button data-tab="timeline">時間軸</button><button data-tab="trends">趨勢</button><button data-tab="settings">設定</button></nav>
 
 <section id="mood" class="panel"><div class="card"><h2>現在的狀態如何？</h2>
 <div class="scale-label"><span>-10 極度憂鬱</span><span>+10 極度亢奮</span></div>
@@ -25,9 +25,31 @@
 <div class="time-grid"><label>上床<input id="bedTime" type="time"></label><label>大約入睡<input id="sleepTime" type="time"></label><label>起床<input id="wakeTime" type="time"></label></div>
 <div id="sleepDuration" class="sleep-total">請輸入入睡與起床時間</div><h3>睡眠品質</h3><div id="quality" class="chips single"></div>
 <h3>半夜醒來</h3><div id="wakeCount" class="chips single"></div><textarea id="sleepNote" maxlength="200" placeholder="備註（選填）"></textarea>
-<button id="saveSleep" class="primary">儲存睡眠紀錄</button></div></section>
+<button id="saveSleep" class="primary">儲存睡眠紀錄</button><div id="recentSleep" class="recent-box"></div></div></section>
 
-<section id="timeline" class="panel hidden"><div class="card"><div class="timeline-head"><div><small>今日紀錄</small><h2 id="timelineDate"></h2></div></div>
+
+<section id="meds" class="panel hidden"><div class="card">
+<h2>💊 今日用藥</h2><p class="hint">先建立目前用藥；平常只要快速確認今天是否依計畫服用。藥物調整會保留歷史。</p>
+<div id="activeMeds"></div>
+<button id="allMedsTaken" class="primary">✓ 今天都依計畫服用</button>
+<hr><h3>新增／調整用藥</h3>
+<div class="form-grid"><input id="medName" placeholder="藥物名稱"><input id="medDose" placeholder="劑量，例如 10 mg">
+<select id="medTime"><option>早上</option><option>中午</option><option>晚上</option><option>睡前</option><option>其他</option></select></div>
+<div class="button-row"><button id="addMed" class="secondary">新增用藥</button><button id="changeMed" class="secondary">記錄調整</button></div>
+<h3>今日狀態</h3><div id="medStatus" class="chips single"></div>
+<textarea id="medNote" maxlength="200" placeholder="選填：漏服時段、調整原因或其他備註"></textarea>
+<button id="saveMedDay" class="primary">儲存今日用藥狀態</button>
+<div id="medHistory" class="recent-box"></div></div></section>
+
+<section id="exercise" class="panel hidden"><div class="card">
+<h2>🏃 運動／活動</h2><p class="hint">選一種活動、時間與強度即可；一天可以記錄多次。</p>
+<div id="exerciseTypes" class="chips"></div><h3>時間</h3><div id="exerciseMinutes" class="chips single"></div>
+<h3>強度</h3><div id="exerciseIntensity" class="chips single"></div>
+<textarea id="exerciseNote" maxlength="160" placeholder="備註（選填）"></textarea>
+<button id="saveExercise" class="primary">儲存這次運動</button>
+<div id="exerciseToday" class="recent-box"></div></div></section>
+
+<section id="timeline" class="panel hidden"><div class="card"><div class="timeline-head"><div><small>查看日期</small><h2 id="timelineDate"></h2></div><input id="viewDate" type="date"></div>
 <canvas id="dayChart" width="560" height="220"></canvas><div id="summary" class="summary"></div><div id="timelineList" class="timeline"></div></div></section>
 
 <section id="trends" class="panel hidden"><div class="card"><div class="timeline-head"><div><small>長期觀察</small><h2>情緒趨勢</h2></div>
