@@ -1,78 +1,49 @@
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const STORE="moodTimelineDataV1", PIN="moodTimelinePinV1";
-let pinInput="", setupFirst=null, selectedFeelings=[], selectedEvents=[], quality=null, wakes=null;
-
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const STORE="moodTimelineDataV1",PIN="moodTimelinePinV1",PREF="moodTimelinePrefsV11";
+let pinInput="",setupFirst=null,selectedFeelings=[],selectedEvents=[],quality=null,wakes=null,changeMode=false,backgroundAt=null;
 const feelings=["😔 低落","😰 焦慮","😡 煩躁","😌 平靜","😊 愉快","⚡ 精力旺盛","😴 疲累","💭 思緒很多"];
-const events=["💼 工作","🏠 家庭","❤️ 關係","🏃 健康","🌙 睡眠","🌱 自己","⋯ 其他"];
-const qualities=["很差","差","普通","好","很好"], wakeOptions=["0次","1次","2次","3次以上"];
-
-function data(){try{return JSON.parse(localStorage.getItem(STORE))||{moods:[],sleeps:[]}}catch{return {moods:[],sleeps:[]}}}
+const events=["💼 工作","🏠 家庭","❤️ 關係","🏃 健康","🌙 睡眠","🌱 自己","⋯ 其他"],qualities=["很差","差","普通","好","很好"],wakeOptions=["0次","1次","2次","3次以上"];
+function data(){try{return JSON.parse(localStorage.getItem(STORE))||{moods:[],sleeps:[]}}catch{return{moods:[],sleeps:[]}}}
 function save(d){localStorage.setItem(STORE,JSON.stringify(d))}
-async function hashPin(pin){
-  const bytes=new TextEncoder().encode("mood-timeline:"+pin);
-  const digest=await crypto.subtle.digest("SHA-256",bytes);
-  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-function renderDots(){ $$("#dots i").forEach((d,i)=>d.classList.toggle("fill",i<pinInput.length)) }
-async function digit(n){
-  if(pinInput.length>=4)return; pinInput+=n; renderDots();
-  if(pinInput.length===4){
-    const saved=localStorage.getItem(PIN);
-    if(!saved){
-      if(setupFirst===null){setupFirst=pinInput; $("#pinHint").textContent="請再輸入一次確認 PIN"; pinInput=""; setTimeout(renderDots,180)}
-      else if(pinInput===setupFirst){localStorage.setItem(PIN,await hashPin(pinInput)); unlock()}
-      else{$("#pinHint").textContent="兩次 PIN 不相同，請重新設定";setupFirst=null;pinInput="";setTimeout(renderDots,180)}
-    }else{
-      if(await hashPin(pinInput)===saved) unlock();
-      else{$("#pinHint").textContent="PIN 不正確，請再試一次";pinInput="";setTimeout(renderDots,180)}
-    }
-  }
-}
-function unlock(){pinInput="";setupFirst=null;renderDots();$("#lockScreen").classList.add("hidden");$("#mainScreen").classList.remove("hidden");renderTimeline()}
-function lock(){ $("#mainScreen").classList.add("hidden");$("#lockScreen").classList.remove("hidden");$("#pinHint").textContent=localStorage.getItem(PIN)?"請輸入 4 位數 PIN":"建立你的 4 位數 PIN"}
-for(let i=1;i<=9;i++){let b=document.createElement("button");b.textContent=i;b.onclick=()=>digit(String(i));$("#keypad").appendChild(b)}
-let spacer=document.createElement("span");$("#keypad").appendChild(spacer);let zero=document.createElement("button");zero.textContent="0";zero.onclick=()=>digit("0");$("#keypad").appendChild(zero);
-$("#clearPin").onclick=()=>{pinInput="";renderDots()}; $("#lockBtn").onclick=lock;
-
-function chipGroup(el,arr,type){
-  arr.forEach(v=>{let b=document.createElement("button");b.textContent=v;b.onclick=()=>{
-    if(type==="feel"){let i=selectedFeelings.indexOf(v);if(i>=0)selectedFeelings.splice(i,1);else if(selectedFeelings.length<3)selectedFeelings.push(v);b.classList.toggle("selected",selectedFeelings.includes(v))}
-    if(type==="event"){let i=selectedEvents.indexOf(v);if(i>=0)selectedEvents.splice(i,1);else selectedEvents.push(v);b.classList.toggle("selected",selectedEvents.includes(v))}
-    if(type==="quality"){quality=v;[...el.children].forEach(x=>x.classList.toggle("selected",x.textContent===v))}
-    if(type==="wakes"){wakes=v;[...el.children].forEach(x=>x.classList.toggle("selected",x.textContent===v))}
-  };el.appendChild(b)})
-}
-chipGroup($("#feelings"),feelings,"feel");chipGroup($("#events"),events,"event");chipGroup($("#quality"),qualities,"quality");chipGroup($("#wakeCount"),wakeOptions,"wakes");
-
-$("#moodRange").oninput=e=>$("#moodValue").textContent=(+e.target.value>0?"+":"")+e.target.value;
-$("#saveMood").onclick=()=>{
-  let d=data();d.moods.push({id:Date.now(),ts:new Date().toISOString(),score:+$("#moodRange").value,feelings:[...selectedFeelings],events:[...selectedEvents],note:$("#moodNote").value.trim()});save(d);
-  $("#moodRange").value=0;$("#moodValue").textContent="0";selectedFeelings=[];selectedEvents=[];$("#moodNote").value="";$("#feelings").querySelectorAll("button").forEach(b=>b.classList.remove("selected"));$("#events").querySelectorAll("button").forEach(b=>b.classList.remove("selected"));alert("已儲存這次情緒紀錄");renderTimeline()
-};
-
-function duration(){
-  let s=$("#sleepTime").value,w=$("#wakeTime").value;if(!s||!w){$("#sleepDuration").textContent="請輸入入睡與起床時間";return null}
-  let [sh,sm]=s.split(":").map(Number),[wh,wm]=w.split(":").map(Number),mins=(wh*60+wm)-(sh*60+sm);if(mins<0)mins+=1440;
-  $("#sleepDuration").textContent=`約 ${Math.floor(mins/60)} 小時 ${mins%60} 分鐘`;return mins
-}
+function prefs(){try{return JSON.parse(localStorage.getItem(PREF))||{lockDelay:1}}catch{return{lockDelay:1}}}
+function savePrefs(p){localStorage.setItem(PREF,JSON.stringify(p))}
+async function hashPin(pin){const b=new TextEncoder().encode("mood-timeline:"+pin),d=await crypto.subtle.digest("SHA-256",b);return[...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function renderDots(){$$("#dots i").forEach((d,i)=>d.classList.toggle("fill",i<pinInput.length))}
+async function digit(n){if(pinInput.length>=4)return;pinInput+=n;renderDots();if(pinInput.length===4){let saved=localStorage.getItem(PIN);
+if(!saved||changeMode){if(setupFirst===null){setupFirst=pinInput;$("#pinHint").textContent="請再輸入一次確認 PIN";pinInput="";setTimeout(renderDots,150)}
+else if(pinInput===setupFirst){localStorage.setItem(PIN,await hashPin(pinInput));changeMode=false;unlock()}
+else{$("#pinHint").textContent="兩次 PIN 不相同，請重新設定";setupFirst=null;pinInput="";setTimeout(renderDots,150)}}
+else if(await hashPin(pinInput)===saved)unlock();else{$("#pinHint").textContent="PIN 不正確，請再試一次";pinInput="";setTimeout(renderDots,150)}}}
+function unlock(){pinInput="";setupFirst=null;renderDots();$("#lockScreen").classList.add("hidden");$("#mainScreen").classList.remove("hidden");renderAll()}
+function lock(){pinInput="";renderDots();$("#mainScreen").classList.add("hidden");$("#lockScreen").classList.remove("hidden");$("#pinHint").textContent=changeMode?"建立新的 4 位數 PIN":localStorage.getItem(PIN)?"請輸入 4 位數 PIN":"建立你的 4 位數 PIN"}
+for(let i=1;i<=9;i++){let b=document.createElement("button");b.textContent=i;b.onclick=()=>digit(String(i));$("#keypad").appendChild(b)}$("#keypad").appendChild(document.createElement("span"));let z=document.createElement("button");z.textContent="0";z.onclick=()=>digit("0");$("#keypad").appendChild(z);
+$("#clearPin").onclick=()=>{pinInput="";renderDots()};$("#lockBtn").onclick=lock;
+function chips(el,arr,type){arr.forEach(v=>{let b=document.createElement("button");b.textContent=v;b.onclick=()=>{if(type==="feel"){let i=selectedFeelings.indexOf(v);if(i>=0)selectedFeelings.splice(i,1);else if(selectedFeelings.length<3)selectedFeelings.push(v);b.classList.toggle("selected",selectedFeelings.includes(v))}
+if(type==="event"){let i=selectedEvents.indexOf(v);if(i>=0)selectedEvents.splice(i,1);else selectedEvents.push(v);b.classList.toggle("selected",selectedEvents.includes(v))}
+if(type==="quality"){quality=v;[...el.children].forEach(x=>x.classList.toggle("selected",x.textContent===v))}
+if(type==="wakes"){wakes=v;[...el.children].forEach(x=>x.classList.toggle("selected",x.textContent===v))}};el.appendChild(b)})}
+chips($("#feelings"),feelings,"feel");chips($("#events"),events,"event");chips($("#quality"),qualities,"quality");chips($("#wakeCount"),wakeOptions,"wakes");
+const fmt=n=>n>0?`+${n}`:`${n}`;$("#moodRange").oninput=e=>$("#moodValue").textContent=fmt(+e.target.value);
+$("#saveMood").onclick=()=>{let d=data();d.moods.push({id:Date.now(),ts:new Date().toISOString(),score:+$("#moodRange").value,feelings:[...selectedFeelings],events:[...selectedEvents],note:$("#moodNote").value.trim()});save(d);$("#moodRange").value=0;$("#moodValue").textContent="0";selectedFeelings=[];selectedEvents=[];$("#moodNote").value="";$$("#feelings button,#events button").forEach(b=>b.classList.remove("selected"));alert("已儲存");renderAll()};
+function duration(){let s=$("#sleepTime").value,w=$("#wakeTime").value;if(!s||!w){$("#sleepDuration").textContent="請輸入入睡與起床時間";return null}let[sh,sm]=s.split(":").map(Number),[wh,wm]=w.split(":").map(Number),m=wh*60+wm-sh*60-sm;if(m<0)m+=1440;$("#sleepDuration").textContent=`約 ${Math.floor(m/60)} 小時 ${m%60} 分鐘`;return m}
 $("#sleepTime").onchange=duration;$("#wakeTime").onchange=duration;
-$("#saveSleep").onclick=()=>{
-  let mins=duration();if(mins===null){alert("請至少輸入入睡與起床時間");return}
-  let d=data(), day=new Date().toISOString().slice(0,10);
-  d.sleeps=d.sleeps.filter(x=>x.day!==day);d.sleeps.push({day,bed:$("#bedTime").value,sleep:$("#sleepTime").value,wake:$("#wakeTime").value,minutes:mins,quality,wakes,note:$("#sleepNote").value.trim()});save(d);alert("睡眠紀錄已儲存");renderTimeline()
-};
-
-$$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.toggle("active",x===b));$$(".panel").forEach(p=>p.classList.add("hidden"));$("#"+b.dataset.tab).classList.remove("hidden");if(b.dataset.tab==="timeline")renderTimeline()});
-function localDay(iso){let d=new Date(iso);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
-function renderTimeline(){
-  let now=new Date(), day=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`, d=data(), rows=d.moods.filter(x=>localDay(x.ts)===day).sort((a,b)=>a.ts.localeCompare(b.ts));
-  $("#timelineDate").textContent=`${now.getMonth()+1}月${now.getDate()}日`;$("#todayLabel").textContent=now.toLocaleDateString("zh-TW",{year:"numeric",month:"long",day:"numeric",weekday:"short"});
-  if(rows.length){let vals=rows.map(x=>x.score);$("#summary").innerHTML=`<div>最低<b>${Math.min(...vals)}</b></div><div>最高<b>+${Math.max(...vals)}</b></div><div>次數<b>${rows.length}</b></div>`}
-  else $("#summary").innerHTML="";
-  $("#timelineList").innerHTML=rows.length?rows.map(x=>{let t=new Date(x.ts).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false});let s=x.score>0?`+${x.score}`:x.score;return `<div class="entry"><div class="time">${t}</div><div class="badge">${s}</div><div><small>${[...x.feelings,...x.events].join(" · ")}</small>${x.note?`<p>${escapeHtml(x.note)}</p>`:""}</div></div>`}).join(""):`<div class="empty">今天還沒有情緒紀錄</div>`
-}
-function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-$("#exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(data(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`mood-timeline-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)};
-document.addEventListener("visibilitychange",()=>{if(document.hidden && !$("#mainScreen").classList.contains("hidden")) setTimeout(()=>{if(document.hidden)lock()},60000)});
-if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");
-lock();
+$("#saveSleep").onclick=()=>{let m=duration();if(m===null)return alert("請至少輸入入睡與起床時間");let d=data(),day=dayKey(new Date());d.sleeps=d.sleeps.filter(x=>x.day!==day);d.sleeps.push({day,bed:$("#bedTime").value,sleep:$("#sleepTime").value,wake:$("#wakeTime").value,minutes:m,quality,wakes,note:$("#sleepNote").value.trim()});save(d);alert("睡眠紀錄已儲存");renderAll()};
+$$(".tabs button").forEach(b=>b.onclick=()=>{$$(".tabs button").forEach(x=>x.classList.toggle("active",x===b));$$(".panel").forEach(p=>p.classList.add("hidden"));$("#"+b.dataset.tab).classList.remove("hidden");renderAll()});
+function dayKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function localDay(iso){return dayKey(new Date(iso))}
+function drawAxes(ctx,w,h){ctx.clearRect(0,0,w,h);ctx.strokeStyle="#e5e6ef";ctx.lineWidth=1;[-10,-5,0,5,10].forEach(v=>{let y=18+(10-v)/20*(h-38);ctx.beginPath();ctx.moveTo(34,y);ctx.lineTo(w-10,y);ctx.stroke();ctx.fillStyle="#7d7f91";ctx.font="11px sans-serif";ctx.fillText(fmt(v),4,y+4)})}
+function renderDay(){let now=new Date(),day=dayKey(now),d=data(),rows=d.moods.filter(x=>localDay(x.ts)===day).sort((a,b)=>a.ts.localeCompare(b.ts));$("#timelineDate").textContent=`${now.getMonth()+1}月${now.getDate()}日`;
+let c=$("#dayChart"),ctx=c.getContext("2d"),w=c.width,h=c.height;drawAxes(ctx,w,h);if(rows.length){ctx.strokeStyle="#5b5bd6";ctx.fillStyle="#5b5bd6";ctx.lineWidth=3;ctx.beginPath();rows.forEach((x,i)=>{let dt=new Date(x.ts),mins=dt.getHours()*60+dt.getMinutes(),xx=38+mins/1440*(w-52),yy=18+(10-x.score)/20*(h-38);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)});ctx.stroke();rows.forEach(x=>{let dt=new Date(x.ts),mins=dt.getHours()*60+dt.getMinutes(),xx=38+mins/1440*(w-52),yy=18+(10-x.score)/20*(h-38);ctx.beginPath();ctx.arc(xx,yy,5,0,Math.PI*2);ctx.fill()});let vals=rows.map(x=>x.score);$("#summary").innerHTML=`<div>最低<b>${fmt(Math.min(...vals))}</b></div><div>最高<b>${fmt(Math.max(...vals))}</b></div><div>次數<b>${rows.length}</b></div>`}else $("#summary").innerHTML="";
+$("#timelineList").innerHTML=rows.length?rows.map(x=>{let t=new Date(x.ts).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false});return`<div class="entry"><div class="time">${t}</div><div class="badge">${fmt(x.score)}</div><div><small>${[...x.feelings,...x.events].join(" · ")}</small>${x.note?`<p>${esc(x.note)}</p>`:""}</div></div>`}).join(""):`<div class="empty">今天還沒有情緒紀錄</div>`}
+function median(a){a=[...a].sort((x,y)=>x-y);return a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2}
+function renderTrends(){let days=+$("#trendRange").value,d=data(),end=new Date(),start=new Date();start.setDate(end.getDate()-days+1);start.setHours(0,0,0,0);let groups={};d.moods.filter(x=>new Date(x.ts)>=start).forEach(x=>(groups[localDay(x.ts)]??=[]).push(x.score));
+let keys=Object.keys(groups).sort(),c=$("#trendChart"),ctx=c.getContext("2d"),w=c.width,h=c.height;drawAxes(ctx,w,h);if(keys.length){keys.forEach((k,i)=>{let vals=groups[k],x=42+(days===1?0:((new Date(k+"T12:00")-start)/86400000)/(days-1))*(w-60),y1=18+(10-Math.max(...vals))/20*(h-38),y2=18+(10-Math.min(...vals))/20*(h-38),ym=18+(10-median(vals))/20*(h-38);ctx.strokeStyle="#aaaaf0";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();ctx.fillStyle="#5052c8";ctx.beginPath();ctx.arc(x,ym,4.5,0,Math.PI*2);ctx.fill()});let all=keys.flatMap(k=>groups[k]);$("#trendStats").innerHTML=`<div>紀錄<b>${all.length}</b></div><div>最低<b>${fmt(Math.min(...all))}</b></div><div>最高<b>${fmt(Math.max(...all))}</b></div>`}else $("#trendStats").innerHTML="<div>尚無資料</div>";
+let recentSleeps=d.sleeps.filter(s=>new Date(s.day+"T12:00")>=start),pairs=[];recentSleeps.forEach(s=>{let vals=groups[s.day];if(vals?.length)pairs.push({hours:s.minutes/60,m:median(vals)})});if(pairs.length>=3){let short=pairs.filter(p=>p.hours<6),normal=pairs.filter(p=>p.hours>=6);let txt=`目前有 ${pairs.length} 天同時具備睡眠與情緒資料。`;if(short.length&&normal.length)txt+=` 睡眠少於 6 小時的 ${short.length} 天，情緒中位數平均為 ${fmt((short.reduce((a,p)=>a+p.m,0)/short.length).toFixed(1))}；其餘 ${normal.length} 天為 ${fmt((normal.reduce((a,p)=>a+p.m,0)/normal.length).toFixed(1))}。這是紀錄中的同時變化，不代表因果關係。`;$("#sleepCompare").textContent=txt}else $("#sleepCompare").textContent="累積至少 3 天同時有睡眠與情緒紀錄後，這裡會開始顯示簡單對照。"}
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderAll(){let n=new Date();$("#todayLabel").textContent=n.toLocaleDateString("zh-TW",{year:"numeric",month:"long",day:"numeric",weekday:"short"});renderDay();renderTrends();$("#lockDelay").value=String(prefs().lockDelay)}
+$("#trendRange").onchange=renderTrends;$("#lockDelay").onchange=e=>savePrefs({lockDelay:+e.target.value});
+$("#exportBtn").onclick=()=>{let payload={version:"1.1",exportedAt:new Date().toISOString(),data:data()},blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`mood-timeline-backup-${dayKey(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)};
+$("#importFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let j=JSON.parse(r.result),incoming=j.data||j;if(!Array.isArray(incoming.moods)||!Array.isArray(incoming.sleeps))throw 0;if(confirm(`將匯入 ${incoming.moods.length} 筆情緒與 ${incoming.sleeps.length} 筆睡眠紀錄，並取代目前資料。繼續嗎？`)){save(incoming);renderAll();alert("備份已還原")}}catch{alert("這不是有效的 Mood Timeline 備份檔")}};r.readAsText(f);e.target.value=""};
+$("#clearData").onclick=()=>{if(confirm("確定要清除所有情緒與睡眠資料嗎？此動作無法復原。")){save({moods:[],sleeps:[]});renderAll();alert("紀錄已清除")}};
+$("#changePin").onclick=()=>{if(confirm("要設定新的 4 位數 PIN 嗎？")){changeMode=true;setupFirst=null;localStorage.removeItem(PIN);lock()}};
+document.addEventListener("visibilitychange",()=>{if(document.hidden)backgroundAt=Date.now();else if(backgroundAt&&!$("#mainScreen").classList.contains("hidden")){let m=prefs().lockDelay;if(m===0||Date.now()-backgroundAt>=m*60000)lock();backgroundAt=null}});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");lock();
